@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t vaverchakm/react-test -f ./Dockerfile.dev ./client
+
+script:
+  - docker run vaverchakm/react-test npm test -- --coverage
+
+after_success:
+  -  docker build -t vaverchakm/multi-client ./client
+  -  docker build -t vaverchakm/multi-nginx ./nginx
+  -  docker build -t vaverchakm/multi-server ./server
+  -  docker build -t vaverchakm/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push vaverchakm/multi-client
+  - docker push vaverchakm/multi-nginx
+  - docker push vaverchakm/multi-server
+  - docker push vaverchakm/multi-worker
